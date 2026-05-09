@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LOOK — Digital Atelier</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Bebas+Neue&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ink:#0c0a08;
+  --paper:#f5f0e8;
+  --cream:#ede8dc;
+  --warm:#e8dcc8;
+  --gold:#c9a84c;
+  --gold2:#e8c96e;
+  --rust:#8b3a2a;
+  --sage:#4a6741;
+  --blush:#d4a0a0;
+  --charcoal:#1e1c18;
+  --stone:#3a3530;
+  --dust:#8a8070;
+  --ghost:#c8c0b0;
+  --serif:'Playfair Display',Georgia,serif;
+  --display:'Bebas Neue',sans-serif;
+  --body:'Cormorant Garamond',Georgia,serif;
+  --mono:'DM Mono',monospace;
+}
+
+html,body{height:100%;overflow:hidden;background:var(--ink);color:var(--paper);font-family:var(--body);cursor:none}
+
+/* CUSTOM CURSOR */
+#cursor{position:fixed;width:12px;height:12px;border-radius:50%;background:var(--gold);pointer-events:none;z-index:9999;transform:translate(-50%,-50%);transition:width .2s,height .2s,background .2s;mix-blend-mode:difference}
+#cursor-ring{position:fixed;width:36px;height:36px;border-radius:50%;border:1px solid var(--gold);pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:all .08s ease;opacity:.6}
+
+/* GRAIN OVERLAY */
+body::before{
+  content:'';position:fixed;inset:0;z-index:1000;pointer-events:none;opacity:.032;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+/* ── TOPBAR ── */
+#topbar{
+  height:56px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 32px;background:var(--ink);
+  border-bottom:1px solid rgba(201,168,76,.18);
+  flex-shrink:0;position:relative;z-index:100;
+}
+.logo-lockup{display:flex;align-items:baseline;gap:16px}
+.logo{font-family:var(--display);font-size:22px;letter-spacing:.25em;color:var(--paper);line-height:1}
+.logo em{color:var(--gold);font-style:normal}
+.logo-sub{font-family:var(--mono);font-size:8px;color:var(--dust);letter-spacing:.5em;text-transform:uppercase;padding-bottom:2px}
+.topbar-center{position:absolute;left:50%;transform:translateX(-50%);text-align:center}
+.topbar-center p{font-family:var(--mono);font-size:8px;color:var(--dust);letter-spacing:.4em}
+.topbar-right{display:flex;align-items:center;gap:20px}
+.worn-status{font-family:var(--mono);font-size:8px;color:var(--dust);letter-spacing:.25em}
+.worn-status b{color:var(--gold)}
+.skin-row{display:flex;align-items:center;gap:6px}
+.skin-label{font-family:var(--mono);font-size:7px;color:var(--dust);letter-spacing:.35em}
+.skin-btn{
+  width:20px;height:20px;border-radius:50%;border:2px solid transparent;
+  cursor:none;transition:all .25s;flex-shrink:0;
+}
+.skin-btn:hover{transform:scale(1.15)}
+.skin-btn.active{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold)}
+
+/* ── THREE PANELS ── */
+#main{display:flex;height:calc(100vh - 56px);overflow:hidden}
+
+/* ══ LEFT ══ */
+#panel-left{
+  width:300px;flex-shrink:0;
+  border-right:1px solid rgba(201,168,76,.12);
+  display:flex;flex-direction:column;
+  background:var(--charcoal);
+  position:relative;overflow:hidden;
+}
+#panel-left::before{
+  content:'';position:absolute;top:0;right:0;width:1px;height:100%;
+  background:linear-gradient(to bottom,transparent,rgba(201,168,76,.3) 30%,rgba(201,168,76,.3) 70%,transparent);
+  pointer-events:none;z-index:2;
+}
+
+/* Platform tabs */
+.ptabs{display:flex;border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.ptab{
+  flex:1;padding:12px 0;border:none;background:transparent;
+  font-family:var(--mono);font-size:8px;letter-spacing:.35em;color:var(--dust);
+  cursor:none;border-bottom:2px solid transparent;transition:all .2s;
+}
+.ptab:hover{color:var(--ghost)}
+.ptab.active{color:var(--gold);border-bottom-color:var(--gold)}
+
+.left-header{
+  padding:14px 18px 10px;border-bottom:1px solid rgba(255,255,255,.05);
+  flex-shrink:0;display:flex;justify-content:space-between;align-items:center;
+}
+.left-header .section-title{font-family:var(--serif);font-size:11px;font-style:italic;color:var(--ghost);letter-spacing:.08em}
+.left-header .count-badge{font-family:var(--mono);font-size:7px;color:var(--dust);letter-spacing:.3em}
+
+/* Items */
+#items-list{flex:1;overflow-y:auto;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+#items-list::-webkit-scrollbar{width:2px}
+#items-list::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3)}
+
+.item-card{
+  display:flex;gap:0;border:1px solid rgba(255,255,255,.06);
+  cursor:none;transition:all .25s;position:relative;overflow:hidden;
+  background:rgba(255,255,255,.02);
+}
+.item-card::after{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(201,168,76,.06) 0%,transparent 60%);
+  opacity:0;transition:opacity .25s;
+}
+.item-card:hover{border-color:rgba(201,168,76,.25);transform:translateY(-1px)}
+.item-card:hover::after{opacity:1}
+.item-card.worn{border-color:rgba(201,168,76,.5);background:rgba(201,168,76,.04)}
+.item-card.worn::after{opacity:1}
+
+.swatch{
+  width:56px;height:70px;flex-shrink:0;
+  position:relative;overflow:hidden;
+}
+.swatch-inner{width:100%;height:100%;position:relative}
+.swatch-sheen{
+  position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(255,255,255,.18) 0%,transparent 55%,rgba(0,0,0,.15) 100%);
+}
+.swatch-tag{
+  position:absolute;bottom:0;left:0;right:0;
+  padding:2px 4px;font-family:var(--mono);font-size:5.5px;
+  text-align:center;letter-spacing:.18em;font-weight:500;
+  background:rgba(0,0,0,.5);color:var(--gold);
+}
+
+.item-body{flex:1;padding:10px 12px;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+.item-platform{font-family:var(--mono);font-size:6px;color:var(--dust);letter-spacing:.4em;margin-bottom:3px}
+.item-name{font-family:var(--serif);font-size:12px;font-style:italic;color:var(--paper);line-height:1.25;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item-card.worn .item-name{color:var(--gold2)}
+.item-bottom{display:flex;justify-content:space-between;align-items:center}
+.item-price{font-family:var(--mono);font-size:10px;color:var(--paper)}
+.item-cta{font-family:var(--mono);font-size:6.5px;color:var(--dust);letter-spacing:.25em;transition:color .2s}
+.item-card.worn .item-cta{color:var(--gold)}
+.item-card:hover .item-cta{color:var(--ghost)}
+.worn-check{
+  position:absolute;top:6px;right:6px;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--gold);display:none;
+  align-items:center;justify-content:center;
+  font-size:8px;color:var(--ink);font-weight:700;
+}
+.item-card.worn .worn-check{display:flex}
+
+/* Outfit tray */
+#outfit-tray{
+  border-top:1px solid rgba(201,168,76,.12);
+  padding:12px 16px;background:rgba(0,0,0,.3);
+  flex-shrink:0;display:none;
+}
+#outfit-tray.show{display:block}
+.tray-title{font-family:var(--mono);font-size:7px;color:var(--dust);letter-spacing:.4em;margin-bottom:10px}
+.tray-item{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.tray-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.tray-name{font-family:var(--body);font-size:11px;font-style:italic;color:var(--ghost);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tray-rm{background:none;border:none;color:rgba(255,255,255,.2);cursor:none;font-size:10px;padding:0 2px;transition:color .2s}
+.tray-rm:hover{color:var(--rust)}
+
+/* ══ CENTER ══ */
+#panel-center{
+  flex:1;display:flex;flex-direction:column;
+  background:linear-gradient(160deg,#100e0b 0%,#0c0a08 100%);
+  border-right:1px solid rgba(201,168,76,.12);
+  position:relative;min-width:0;overflow:hidden;
+}
+
+/* Decorative diagonal */
+#panel-center::before{
+  content:'';position:absolute;
+  top:-80px;right:-80px;
+  width:260px;height:260px;
+  border:1px solid rgba(201,168,76,.06);
+  border-radius:50%;pointer-events:none;
+}
+#panel-center::after{
+  content:'';position:absolute;
+  top:-40px;right:-40px;
+  width:160px;height:160px;
+  border:1px solid rgba(201,168,76,.04);
+  border-radius:50%;pointer-events:none;
+}
+
+.center-header{
+  padding:14px 22px;border-bottom:1px solid rgba(201,168,76,.1);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;position:relative;z-index:2;
+}
+.ch-left h2{font-family:var(--display);font-size:13px;letter-spacing:.45em;color:var(--paper)}
+.ch-left p{font-family:var(--mono);font-size:7px;color:var(--dust);letter-spacing:.35em;margin-top:2px}
+.ai-badge{
+  display:flex;align-items:center;gap:8px;
+  padding:5px 12px;border:1px solid rgba(201,168,76,.2);
+  font-family:var(--mono);font-size:7px;color:var(--gold);letter-spacing:.3em;
+}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:aiPulse 2s infinite}
+
+/* Chips */
+#chips{
+  padding:10px 18px;border-bottom:1px solid rgba(255,255,255,.04);
+  display:flex;gap:6px;flex-wrap:wrap;flex-shrink:0;
+}
+.chip{
+  background:transparent;border:1px solid rgba(255,255,255,.08);
+  color:var(--dust);font-family:var(--mono);font-size:7.5px;
+  padding:5px 12px;cursor:none;letter-spacing:.12em;
+  transition:all .2s;
+}
+.chip:hover{border-color:rgba(201,168,76,.4);color:var(--gold);background:rgba(201,168,76,.04)}
+
+/* Chat */
+#chat{flex:1;overflow-y:auto;padding:22px 20px;display:flex;flex-direction:column;gap:18px;position:relative;z-index:2}
+#chat::-webkit-scrollbar{width:2px}
+#chat::-webkit-scrollbar-thumb{background:rgba(201,168,76,.2)}
+
+.msg{display:flex;gap:10px;align-items:flex-end}
+.msg.user{flex-direction:row-reverse}
+
+.msg-avatar{
+  width:32px;height:32px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;border:1px solid rgba(201,168,76,.3);
+}
+.msg.ai .msg-avatar{background:linear-gradient(135deg,#2a2418,#1a1610);color:var(--gold)}
+.msg.user .msg-avatar{background:rgba(255,255,255,.05);color:var(--dust)}
+
+.msg-bubble{
+  max-width:76%;padding:12px 16px;
+  font-family:var(--body);font-size:13px;line-height:1.7;
+  border:1px solid rgba(255,255,255,.07);
+}
+.msg.ai .msg-bubble{
+  background:rgba(255,255,255,.03);color:var(--cream);
+  border-color:rgba(201,168,76,.12);
+  border-left:2px solid rgba(201,168,76,.4);
+}
+.msg.user .msg-bubble{
+  background:rgba(201,168,76,.07);
+  border-color:rgba(201,168,76,.2);
+  color:var(--warm);font-style:italic;
+}
+.msg-bubble strong{color:var(--gold2);font-style:normal;font-weight:600}
+
+/* Typing */
+#typing{display:none;padding:0 20px 4px}
+#typing.show{display:flex}
+.typing-dot{
+  width:5px;height:5px;border-radius:50%;background:var(--gold);
+  animation:typingBounce 1.2s infinite;
+}
+.typing-dot:nth-child(2){animation-delay:.18s}
+.typing-dot:nth-child(3){animation-delay:.36s}
+
+/* Input */
+#input-bar{
+  padding:14px 18px;border-top:1px solid rgba(201,168,76,.12);
+  background:rgba(0,0,0,.3);flex-shrink:0;
+  display:flex;gap:10px;align-items:center;position:relative;z-index:2;
+}
+#input-bar::before{
+  content:'✦';position:absolute;left:28px;
+  font-size:10px;color:rgba(201,168,76,.35);pointer-events:none;
+  top:50%;transform:translateY(-50%);
+}
+#prompt-input{
+  flex:1;background:transparent;border:none;border-bottom:1px solid rgba(201,168,76,.2);
+  color:var(--cream);padding:8px 8px 8px 24px;
+  font-family:var(--body);font-size:14px;font-style:italic;
+  outline:none;letter-spacing:.03em;transition:border-color .2s;
+}
+#prompt-input::placeholder{color:rgba(255,255,255,.18);font-style:italic}
+#prompt-input:focus{border-bottom-color:var(--gold)}
+#send-btn{
+  background:transparent;border:1px solid rgba(201,168,76,.3);
+  color:var(--dust);font-family:var(--mono);font-size:8px;
+  padding:9px 18px;letter-spacing:.3em;cursor:none;
+  transition:all .2s;white-space:nowrap;
+}
+#send-btn.ready{
+  border-color:var(--gold);color:var(--gold);
+  background:rgba(201,168,76,.06);
+  box-shadow:0 0 20px rgba(201,168,76,.12);
+}
+#send-btn:hover.ready{background:rgba(201,168,76,.12)}
+
+/* ══ RIGHT ══ */
+#panel-right{
+  width:340px;flex-shrink:0;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+  background:linear-gradient(175deg,#0f0d0a 0%,#080604 60%,#0a0806 100%);
+}
+
+/* Decorative bg lines */
+.bg-line{
+  position:absolute;pointer-events:none;
+  border:1px solid rgba(201,168,76,.04);
+}
+.bg-line.l1{top:-60px;left:-60px;width:240px;height:240px;border-radius:50%}
+.bg-line.l2{top:20px;left:20px;width:120px;height:120px;border-radius:50%}
+.bg-line.l3{bottom:-40px;right:-40px;width:180px;height:180px;border-radius:50%}
+
+/* Cross-hair decorations */
+.crosshair{
+  position:absolute;width:24px;height:24px;pointer-events:none;
+  opacity:.15;
+}
+.crosshair::before,.crosshair::after{content:'';position:absolute;background:var(--gold)}
+.crosshair::before{width:1px;height:100%;left:50%;top:0}
+.crosshair::after{height:1px;width:100%;top:50%;left:0}
+.ch1{top:60px;left:20px}
+.ch2{bottom:100px;right:20px}
+
+.right-header{
+  padding:14px 22px;border-bottom:1px solid rgba(201,168,76,.1);
+  position:relative;z-index:2;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.rh-left h2{font-family:var(--display);font-size:13px;letter-spacing:.45em;color:var(--paper)}
+.rh-left p{font-family:var(--mono);font-size:7px;color:var(--dust);letter-spacing:.35em;margin-top:2px}
+#clear-btn{
+  background:none;border:1px solid rgba(255,255,255,.08);
+  color:rgba(255,255,255,.25);font-family:var(--mono);font-size:7px;
+  padding:5px 12px;cursor:none;letter-spacing:.25em;
+  transition:all .2s;display:none;
+}
+#clear-btn:hover{border-color:rgba(139,58,42,.6);color:var(--rust)}
+
+/* Avatar stage */
+#avatar-stage{
+  flex:1;display:flex;align-items:center;justify-content:center;
+  position:relative;z-index:2;
+}
+
+/* Runway lines */
+.runway-line{
+  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
+  width:1px;background:linear-gradient(to bottom,rgba(201,168,76,.0),rgba(201,168,76,.15) 40%,rgba(201,168,76,.08));
+  pointer-events:none;
+}
+.runway-line.r1{left:28%;height:80%}
+.runway-line.r2{left:72%;height:80%}
+.runway-floor{
+  position:absolute;bottom:0;left:15%;right:15%;height:1px;
+  background:linear-gradient(to right,transparent,rgba(201,168,76,.2) 20%,rgba(201,168,76,.2) 80%,transparent);
+}
+
+/* Measurement marks */
+.measure{
+  position:absolute;font-family:var(--mono);font-size:6px;
+  color:rgba(201,168,76,.2);letter-spacing:.2em;
+}
+.measure.left{left:16px;writing-mode:vertical-lr;top:50%;transform:translateY(-50%)}
+.measure.right{right:16px;writing-mode:vertical-lr;top:50%;transform:translateY(-50%)}
+
+/* Avatar glow */
+#avatar-glow{
+  position:absolute;bottom:10%;left:50%;transform:translateX(-50%);
+  width:160px;height:80px;border-radius:50%;
+  background:radial-gradient(ellipse,rgba(201,168,76,.08),transparent 70%);
+  filter:blur(12px);pointer-events:none;transition:opacity .4s;
+}
+#avatar-glow.bright{background:radial-gradient(ellipse,rgba(201,168,76,.22),transparent 70%)}
+
+#avatar-svg{
+  position:relative;z-index:3;
+  filter:drop-shadow(0 20px 40px rgba(0,0,0,.8));
+  transition:filter .35s ease;
+}
+#avatar-svg.flash{
+  filter:drop-shadow(0 0 30px rgba(201,168,76,.6)) drop-shadow(0 20px 40px rgba(0,0,0,.8)) brightness(1.15);
+}
+
+/* Bottom runway strip */
+#bottom-strip{
+  padding:16px 20px;border-top:1px solid rgba(201,168,76,.1);
+  background:rgba(0,0,0,.4);flex-shrink:0;position:relative;z-index:2;
+  min-height:68px;
+}
+#empty-hint{
+  text-align:center;padding:12px 0;
+  font-family:var(--body);font-size:12px;font-style:italic;
+  color:rgba(255,255,255,.15);letter-spacing:.08em;
+}
+#outfit-strip{display:none}
+#outfit-strip.show{display:block}
+.os-title{font-family:var(--mono);font-size:7px;color:var(--dust);letter-spacing:.4em;margin-bottom:10px}
+.worn-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.worn-tag{
+  display:flex;align-items:center;gap:6px;
+  border:1px solid rgba(201,168,76,.15);padding:4px 10px;
+  background:rgba(201,168,76,.03);
+}
+.tag-dot{width:6px;height:6px;border-radius:50%}
+.tag-txt{font-family:var(--body);font-size:10px;font-style:italic;color:var(--ghost)}
+.strip-btns{display:flex;gap:8px}
+.strip-btn{
+  flex:1;padding:10px;font-family:var(--mono);font-size:7.5px;
+  letter-spacing:.3em;cursor:none;border:none;transition:all .2s;
+}
+.strip-btn.primary{
+  background:linear-gradient(135deg,var(--gold),#a8842e);
+  color:var(--ink);font-weight:700;
+}
+.strip-btn.primary:hover{background:linear-gradient(135deg,var(--gold2),var(--gold));transform:translateY(-1px)}
+.strip-btn.secondary{
+  background:transparent;color:var(--gold);
+  border:1px solid rgba(201,168,76,.35);
+}
+.strip-btn.secondary:hover{background:rgba(201,168,76,.06);transform:translateY(-1px)}
+
+/* ── ANIMATIONS ── */
+@keyframes aiPulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(201,168,76,.4)}50%{opacity:.5;box-shadow:0 0 0 6px rgba(201,168,76,0)}}
+@keyframes typingBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-6px);opacity:1}}
+@keyframes fadeSlideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes ringFlash{from{opacity:.7;transform:translate(-50%,-50%) scale(.9)}to{opacity:0;transform:translate(-50%,-50%) scale(1.06)}}
+
+.msg{animation:fadeSlideUp .35s ease}
+
+/* Flash ring */
+#flash-ring{
+  position:absolute;top:50%;left:50%;
+  width:200px;height:380px;
+  border:1px solid rgba(201,168,76,.6);
+  pointer-events:none;opacity:0;z-index:10;
+}
+</style>
+</head>
+<body>
+
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo-lockup">
+    <div class="logo">L<em>OO</em>K</div>
+    <div class="logo-sub">Digital Atelier</div>
+  </div>
+  <div class="topbar-center">
+    <p>VIRTUAL FITTING ROOM · SS 2026</p>
+  </div>
+  <div class="topbar-right">
+    <div id="worn-status" class="worn-status">No pieces selected</div>
+    <div class="skin-row">
+      <span class="skin-label">COMPLEXION</span>
+      <button class="skin-btn" style="background:#f5d0a9" data-tone="#f5d0a9"></button>
+      <button class="skin-btn active" style="background:#e8a87c" data-tone="#e8a87c"></button>
+      <button class="skin-btn" style="background:#c68642" data-tone="#c68642"></button>
+      <button class="skin-btn" style="background:#8d5524" data-tone="#8d5524"></button>
+      <button class="skin-btn" style="background:#4a2912" data-tone="#4a2912"></button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div id="main">
+
+  <!-- ═══ LEFT PANEL ═══ -->
+  <div id="panel-left">
+    <div class="ptabs">
+      <button class="ptab active" data-p="zara">ZARA</button>
+      <button class="ptab" data-p="hm">H&M</button>
+      <button class="ptab" data-p="myntra">MYNTRA</button>
+    </div>
+    <div class="left-header">
+      <span class="section-title">Current Collection</span>
+      <span class="count-badge" id="count-badge">4 PIECES</span>
+    </div>
+    <div id="items-list"></div>
+    <div id="outfit-tray">
+      <div class="tray-title">YOUR SELECTION</div>
+      <div id="tray-items"></div>
+    </div>
+  </div>
+
+  <!-- ═══ CENTER PANEL ═══ -->
+  <div id="panel-center">
+    <div class="center-header">
+      <div class="ch-left">
+        <h2>AI STYLIST</h2>
+        <p>DESCRIBE YOUR VISION</p>
+      </div>
+      <div class="ai-badge"><div class="ai-dot"></div>ONLINE</div>
+    </div>
+
+    <div id="chips">
+      <button class="chip" data-p="Try the wool coat from Zara">Wool coat look</button>
+      <button class="chip" data-p="Show me a bold red outfit">Bold red</button>
+      <button class="chip" data-p="Wedding guest look">Wedding guest</button>
+      <button class="chip" data-p="Casual street style for a day out">Street style</button>
+      <button class="chip" data-p="Give me a complete ethnic set">Ethnic set</button>
+    </div>
+
+    <div id="chat">
+      <div class="msg ai">
+        <div class="msg-avatar">✦</div>
+        <div class="msg-bubble">
+          Bonjour. I am your personal stylist at Maison. Tell me the <strong>occasion</strong>, the <strong>mood</strong>, or simply what you desire — and I will dress your avatar instantly. The runway is yours.
+        </div>
+      </div>
+    </div>
+
+    <div id="typing">
+      <div class="msg ai" style="padding:0">
+        <div class="msg-avatar">✦</div>
+        <div class="msg-bubble" style="padding:14px 18px;display:flex;gap:7px;align-items:center">
+          <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+        </div>
+      </div>
+    </div>
+
+    <div id="input-bar">
+      <input id="prompt-input" type="text" placeholder="Describe your look, occasion, or style..."/>
+      <button id="send-btn">STYLE →</button>
+    </div>
+  </div>
+
+  <!-- ═══ RIGHT PANEL ═══ -->
+  <div id="panel-right">
+    <div class="bg-line l1"></div>
+    <div class="bg-line l2"></div>
+    <div class="bg-line l3"></div>
+    <div class="crosshair ch1"></div>
+    <div class="crosshair ch2"></div>
+
+    <div class="right-header">
+      <div class="rh-left">
+        <h2>YOUR AVATAR</h2>
+        <p>LIVE PREVIEW</p>
+      </div>
+      <button id="clear-btn" onclick="clearAll()">RESET</button>
+    </div>
+
+    <div id="avatar-stage">
+      <div class="runway-line r1"></div>
+      <div class="runway-line r2"></div>
+      <div class="runway-floor"></div>
+      <span class="measure left">HEIGHT ↑</span>
+      <span class="measure right">SILHOUETTE</span>
+      <div id="avatar-glow"></div>
+      <svg id="avatar-svg" viewBox="0 0 200 420" width="200" height="420"></svg>
+      <div id="flash-ring"></div>
+    </div>
+
+    <div id="bottom-strip">
+      <div id="empty-hint">Choose a piece from the collection ↗</div>
+      <div id="outfit-strip">
+        <div class="os-title">TODAY'S LOOK</div>
+        <div class="worn-tags" id="worn-tags-right"></div>
+        <div class="strip-btns">
+          <button class="strip-btn primary">SAVE LOOK</button>
+          <button class="strip-btn secondary">SHARE →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ─── CURSOR ──────────────────────────────────────────────────────────────────
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{
+  mx=e.clientX; my=e.clientY;
+  cur.style.left=mx+'px'; cur.style.top=my+'px';
+});
+(function anim(){
+  rx+=(mx-rx)*.12; ry+=(my-ry)*.12;
+  ring.style.left=rx+'px'; ring.style.top=ry+'px';
+  requestAnimationFrame(anim);
+})();
+
+// ─── DATA ────────────────────────────────────────────────────────────────────
+const platforms = {
+  zara:{
+    items:[
+      {id:1,name:"Oversized Wool Coat",   price:"₹12,990",color:"#3d2b1f",accent:"#c8a882",cat:"Outerwear",tag:"NEW"},
+      {id:2,name:"Ribbed Knit Dress",     price:"₹4,490", color:"#7a5e50",accent:"#d4b89e",cat:"Dresses",  tag:"TRENDING"},
+      {id:3,name:"Wide Leg Trousers",     price:"₹3,990", color:"#1e2035",accent:"#7880d0",cat:"Bottoms",  tag:""},
+      {id:4,name:"Satin Slip Top",        price:"₹2,990", color:"#b89aac",accent:"#eadce6",cat:"Tops",     tag:"BESTSELLER"},
+    ]
+  },
+  hm:{
+    items:[
+      {id:5,name:"Linen Blend Blazer",    price:"₹3,499", color:"#ddd5c0",accent:"#a09070",cat:"Tops",     tag:"SALE"},
+      {id:6,name:"Floral Midi Skirt",     price:"₹2,299", color:"#2d5a3d",accent:"#7fc99a",cat:"Bottoms",  tag:"NEW"},
+      {id:7,name:"Cargo Joggers",         price:"₹1,999", color:"#454035",accent:"#a8a070",cat:"Bottoms",  tag:""},
+      {id:8,name:"Cropped Hoodie",        price:"₹1,799", color:"#c24040",accent:"#f08080",cat:"Tops",     tag:"HOT"},
+    ]
+  },
+  myntra:{
+    items:[
+      {id:9, name:"Anarkali Kurta",       price:"₹1,899", color:"#5a2278",accent:"#c090e0",cat:"Ethnic",   tag:"FESTIVE"},
+      {id:10,name:"Denim Jacket",         price:"₹2,499", color:"#1e3a5f",accent:"#5090c0",cat:"Outerwear",tag:""},
+      {id:11,name:"Palazzo Set",          price:"₹1,599", color:"#b84020",accent:"#e08060",cat:"Sets",     tag:"DEAL"},
+      {id:12,name:"Biker Leather Jacket", price:"₹5,999", color:"#181818",accent:"#808080",cat:"Outerwear",tag:"PREMIUM"},
+    ]
+  }
+};
+const allItems = Object.values(platforms).flatMap(p=>p.items);
+
+let skin="#e8a87c", wearing=[], activePlatform="zara";
+
+// ─── RENDER ITEMS ─────────────────────────────────────────────────────────────
+function renderItems(){
+  const list=document.getElementById('items-list');
+  const items=platforms[activePlatform].items;
+  document.getElementById('count-badge').textContent=`${items.length} PIECES`;
+  list.innerHTML='';
+  items.forEach(item=>{
+    const on=wearing.some(w=>w.id===item.id);
+    const d=document.createElement('div');
+    d.className='item-card'+(on?' worn':'');
+    d.innerHTML=`
+      <div class="swatch">
+        <div class="swatch-inner" style="background:${item.color}">
+          <div class="swatch-sheen"></div>
+          ${item.tag?`<div class="swatch-tag">${item.tag}</div>`:''}
+        </div>
+      </div>
+      <div class="item-body">
+        <div>
+          <div class="item-platform">${activePlatform.toUpperCase()}</div>
+          <div class="item-name">${item.name}</div>
+        </div>
+        <div class="item-bottom">
+          <span class="item-price">${item.price}</span>
+          <span class="item-cta">${on?'WEARING ✓':'TRY ON →'}</span>
+        </div>
+      </div>
+      <div class="worn-check">✓</div>
+    `;
+    d.onclick=()=>toggleItem(item);
+    list.appendChild(d);
+  });
+}
+
+// ─── TOGGLE ──────────────────────────────────────────────────────────────────
+function toggleItem(item){
+  const idx=wearing.findIndex(w=>w.id===item.id);
+  if(idx>=0) wearing.splice(idx,1);
+  else{ wearing=wearing.filter(w=>w.cat!==item.cat); wearing.push(item); }
+  doFlash(); renderItems(); drawAvatar(); renderTray(); syncStatus();
+}
+function clearAll(){
+  wearing=[]; renderItems(); drawAvatar(); renderTray(); syncStatus();
+}
+function syncStatus(){
+  const el=document.getElementById('worn-status');
+  el.innerHTML=wearing.length===0
+    ? 'No pieces selected'
+    : `<b>${wearing.length}</b> piece${wearing.length>1?'s':''} on avatar`;
+  document.getElementById('clear-btn').style.display=wearing.length?'block':'none';
+}
+
+// ─── TRAY ─────────────────────────────────────────────────────────────────────
+function renderTray(){
+  const tray=document.getElementById('outfit-tray');
+  const ti=document.getElementById('tray-items');
+  const strip=document.getElementById('outfit-strip');
+  const empty=document.getElementById('empty-hint');
+  const tags=document.getElementById('worn-tags-right');
+
+  if(wearing.length===0){
+    tray.classList.remove('show');
+    strip.classList.remove('show');
+    empty.style.display='block';
+    return;
+  }
+  tray.classList.add('show');
+  strip.classList.add('show');
+  empty.style.display='none';
+
+  ti.innerHTML=wearing.map(w=>`
+    <div class="tray-item">
+      <span class="tray-dot" style="background:${w.color}"></span>
+      <span class="tray-name">${w.name}</span>
+      <button class="tray-rm" onclick="removeItem(${w.id})">✕</button>
+    </div>
+  `).join('');
+
+  tags.innerHTML=wearing.map(w=>`
+    <div class="worn-tag">
+      <span class="tag-dot" style="background:${w.color};border:1px solid ${w.accent}"></span>
+      <span class="tag-txt">${w.name}</span>
+    </div>
+  `).join('');
+}
+function removeItem(id){
+  const item=allItems.find(i=>i.id===id);
+  if(item) toggleItem(item);
+}
+
+// ─── FLASH ───────────────────────────────────────────────────────────────────
+function doFlash(){
+  const svg=document.getElementById('avatar-svg');
+  const glow=document.getElementById('avatar-glow');
+  const fr=document.getElementById('flash-ring');
+  svg.classList.add('flash');
+  glow.classList.add('bright');
+  fr.style.animation='none'; fr.offsetHeight;
+  fr.style.animation='ringFlash .55s ease forwards';
+  setTimeout(()=>{ svg.classList.remove('flash'); glow.classList.remove('bright'); },500);
+}
+
+// ─── AVATAR ──────────────────────────────────────────────────────────────────
+function drawAvatar(){
+  const svg=document.getElementById('avatar-svg');
+  const top    = wearing.find(w=>['Tops','Outerwear','Ethnic','Sets'].includes(w.cat));
+  const bottom = wearing.find(w=>w.cat==='Bottoms');
+  const dress  = wearing.find(w=>w.cat==='Dresses');
+  const s=skin;
+  const bc = top?.color    || '#3a3535';
+  const lc = bottom?.color || dress?.color || '#1e1c18';
+  const hasDress=!!dress;
+  const hasCargo=bottom?.name?.includes('Cargo');
+  const hasCoat =top?.cat==='Outerwear';
+  const hasBlazer=top?.name?.includes('Blazer');
+
+  svg.innerHTML=`
+    <!-- SHADOW -->
+    <ellipse cx="100" cy="412" rx="44" ry="7" fill="rgba(0,0,0,.35)"/>
+
+    <!-- LEGS -->
+    <path d="M74,228 Q70,310 66,406 L84,406 Q89,330 100,296 Q111,330 116,406 L134,406 Q130,310 126,228 Z"
+      fill="${hasDress?bc:lc}"/>
+
+    ${hasCargo?`
+      <rect x="66" y="268" width="18" height="24" rx="2" fill="rgba(0,0,0,.3)"/>
+      <line x1="75" y1="268" x2="75" y2="292" stroke="rgba(0,0,0,.2)" stroke-width="1"/>
+      <rect x="116" y="268" width="18" height="24" rx="2" fill="rgba(0,0,0,.3)"/>
+    `:''}
+
+    <!-- BODY -->
+    <path d="M64,136 Q50,150 48,176 L46,228 Q70,238 100,236 Q130,238 154,228 L152,176 Q150,150 136,136 Q120,148 100,148 Q80,148 64,136 Z"
+      fill="${bc}"/>
+
+    <!-- BODY SHEEN -->
+    <path d="M64,136 Q50,150 48,176 L54,200 Q68,170 78,155 Q88,148 100,148 Q80,148 64,136 Z"
+      fill="rgba(255,255,255,.06)"/>
+
+    ${hasCoat?`
+      <path d="M78,138 Q74,120 88,116 L100,130 L112,116 Q126,120 122,138 Q110,148 100,148 Q90,148 78,138 Z"
+        fill="${bc}" stroke="rgba(255,255,255,.08)" stroke-width="1"/>
+      <path d="M78,138 L68,200 L80,192 Z" fill="rgba(0,0,0,.15)"/>
+      <path d="M122,138 L132,200 L120,192 Z" fill="rgba(0,0,0,.15)"/>
+    `:''}
+
+    ${hasBlazer?`
+      <path d="M84,138 L74,176 L100,160 Z" fill="${bc}" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>
+      <path d="M116,138 L126,176 L100,160 Z" fill="${bc}" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>
+      <ellipse cx="100" cy="162" rx="4" ry="5" fill="rgba(255,255,255,.08)"/>
+    `:''}
+
+    <!-- ARMS -->
+    <path d="M50,140 Q28,165 26,208 L40,211 Q42,174 58,154 Z" fill="${bc}"/>
+    <path d="M150,140 Q172,165 174,208 L160,211 Q158,174 142,154 Z" fill="${bc}"/>
+
+    <!-- ARM SHEEN -->
+    <path d="M50,140 Q38,155 34,175 Q44,168 54,154 Z" fill="rgba(255,255,255,.05)"/>
+    <path d="M150,140 Q162,155 166,175 Q156,168 146,154 Z" fill="rgba(255,255,255,.05)"/>
+
+    <!-- FOREARMS -->
+    <path d="M26,208 Q22,230 28,242 L42,238 L40,211 Z" fill="${s}"/>
+    <path d="M174,208 Q178,230 172,242 L158,238 L160,211 Z" fill="${s}"/>
+
+    <!-- HANDS -->
+    <ellipse cx="29" cy="246" rx="8" ry="6" fill="${s}"/>
+    <ellipse cx="171" cy="246" rx="8" ry="6" fill="${s}"/>
+
+    <!-- NECK -->
+    <path d="M88,118 Q84,112 88,106 Q100,102 112,106 Q116,112 112,118 Q104,128 88,118 Z" fill="${s}"/>
+
+    <!-- HEAD SHADOW -->
+    <ellipse cx="100" cy="90" rx="36" ry="40" fill="rgba(0,0,0,.25)" transform="translate(3,6)"/>
+
+    <!-- HEAD -->
+    <ellipse cx="100" cy="88" rx="35" ry="40" fill="${s}"/>
+
+    <!-- HEAD SHEEN -->
+    <ellipse cx="88" cy="72" rx="16" ry="18" fill="rgba(255,255,255,.07)"/>
+
+    <!-- HAIR BASE -->
+    <path d="M65,78 Q68,46 100,44 Q132,46 135,78 Q126,60 100,58 Q74,60 65,78 Z" fill="#140a00"/>
+    <!-- HAIR SIDES -->
+    <path d="M65,78 Q60,95 63,114 Q66,84 74,76 Z" fill="#140a00"/>
+    <path d="M135,78 Q140,95 137,114 Q134,84 126,76 Z" fill="#140a00"/>
+    <!-- HAIR HIGHLIGHT -->
+    <path d="M78,52 Q100,46 118,54 Q105,50 100,50 Q90,50 78,52 Z" fill="rgba(255,255,255,.08)"/>
+
+    <!-- EYEBROWS -->
+    <path d="M81,76 Q87,72 93,75" stroke="#2a1500" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M107,75 Q113,72 119,76" stroke="#2a1500" stroke-width="2" fill="none" stroke-linecap="round"/>
+
+    <!-- EYES -->
+    <ellipse cx="87" cy="86" rx="5" ry="6" fill="#1a1008"/>
+    <ellipse cx="113" cy="86" rx="5" ry="6" fill="#1a1008"/>
+    <!-- IRIS -->
+    <ellipse cx="87" cy="87" rx="3" ry="3.5" fill="#3a2010"/>
+    <ellipse cx="113" cy="87" rx="3" ry="3.5" fill="#3a2010"/>
+    <!-- CATCH LIGHT -->
+    <ellipse cx="89" cy="84" rx="1.5" ry="1.5" fill="rgba(255,255,255,.7)"/>
+    <ellipse cx="115" cy="84" rx="1.5" ry="1.5" fill="rgba(255,255,255,.7)"/>
+    <!-- LASHES (top) -->
+    <path d="M82,80 Q87,77 92,80" stroke="#140a00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M108,80 Q113,77 118,80" stroke="#140a00" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+
+    <!-- NOSE -->
+    <path d="M97,92 Q100,100 103,92" stroke="rgba(0,0,0,.15)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M94,103 Q100,106 106,103" stroke="rgba(0,0,0,.1)" stroke-width="1" fill="none" stroke-linecap="round"/>
+
+    <!-- LIPS -->
+    <path d="M90,108 Q100,114 110,108" fill="#c07060" opacity=".7"/>
+    <path d="M90,108 Q100,105 110,108" fill="#d08070" opacity=".5"/>
+    <!-- LIP LINE -->
+    <path d="M90,108 Q100,109 110,108" stroke="#a05040" stroke-width=".8" fill="none"/>
+
+    <!-- EARS -->
+    <ellipse cx="65" cy="92" rx="5" ry="8" fill="${s}" stroke="rgba(0,0,0,.1)" stroke-width=".5"/>
+    <ellipse cx="135" cy="92" rx="5" ry="8" fill="${s}" stroke="rgba(0,0,0,.1)" stroke-width=".5"/>
+
+    <!-- SHOES -->
+    <path d="M60,400 Q54,414 76,416 L84,408 L66,404 Z" fill="#111"/>
+    <path d="M60,400 Q54,408 60,412 L76,416 Q54,414 60,400 Z" fill="rgba(255,255,255,.04)"/>
+    <path d="M140,400 Q146,414 124,416 L116,408 L134,404 Z" fill="#111"/>
+    <path d="M140,400 Q146,408 140,412 L124,416 Q146,414 140,400 Z" fill="rgba(255,255,255,.04)"/>
+  `;
+}
+
+// ─── CHAT ────────────────────────────────────────────────────────────────────
+const chatEl=document.getElementById('chat');
+function addMsg(role,html){
+  const d=document.createElement('div');
+  d.className=`msg ${role}`;
+  d.innerHTML=`
+    <div class="msg-avatar">${role==='ai'?'✦':'◈'}</div>
+    <div class="msg-bubble">${html}</div>
+  `;
+  chatEl.appendChild(d);
+  chatEl.scrollTop=chatEl.scrollHeight;
+}
+
+function handlePrompt(txt){
+  txt=txt.trim(); if(!txt)return;
+  addMsg('user',`<em>${txt}</em>`);
+  document.getElementById('prompt-input').value='';
+  document.getElementById('send-btn').classList.remove('ready');
+  const t=document.getElementById('typing');
+  t.classList.add('show'); chatEl.scrollTop=chatEl.scrollHeight;
+
+  setTimeout(()=>{
+    t.classList.remove('show');
+    const lo=txt.toLowerCase();
+    let applied=[];
+    const tryId=id=>{const it=allItems.find(i=>i.id===id);if(it){toggleItem(it);applied.push(`<strong>${it.name}</strong>`);}};
+
+    if(lo.includes('coat')||lo.includes('wool'))        tryId(1);
+    if(lo.includes('dress')||lo.includes('ribbed'))     tryId(2);
+    if(lo.includes('trouser')||lo.includes('wide'))     tryId(3);
+    if(lo.includes('satin')||lo.includes('slip'))       tryId(4);
+    if(lo.includes('blazer')||lo.includes('linen'))     tryId(5);
+    if(lo.includes('skirt')||lo.includes('floral'))     tryId(6);
+    if(lo.includes('cargo'))                            tryId(7);
+    if(lo.includes('hoodie')||lo.includes('red')||lo.includes('bold')) tryId(8);
+    if(lo.includes('ethnic')||lo.includes('wedding')||lo.includes('festive')||lo.includes('kurta')) tryId(9);
+    if(lo.includes('denim'))                            tryId(10);
+    if(lo.includes('palazzo')||lo.includes('set'))      tryId(11);
+    if(lo.includes('leather')||lo.includes('biker'))    tryId(12);
+    if(lo.includes('casual')||lo.includes('street'))    {tryId(8);tryId(7);}
+
+    let reply;
+    if(lo.includes('clear')||lo.includes('reset')){
+      clearAll();
+      reply="Bien sûr. Your canvas is reset. Shall we begin anew with a fresh vision?";
+    } else if(applied.length>0){
+      reply=`Magnifique. I have dressed you in ${applied.join(' paired with ')}. The silhouette is striking — would you like to complete the look further?`;
+    } else {
+      const r=["the Zara Wool Coat — effortlessly luxurious","the Anarkali Kurta — rich with occasion","the Linen Blazer — quietly powerful"];
+      reply=`For that aesthetic, I would suggest <strong>${r[Math.floor(Math.random()*r.length)]}</strong>. Browse the collection on your left to visualise it on your form.`;
+    }
+    addMsg('ai',reply);
+  },1400);
+}
+
+// ─── EVENTS ──────────────────────────────────────────────────────────────────
+document.querySelectorAll('.ptab').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); activePlatform=b.dataset.p; renderItems();
+  };
+});
+document.querySelectorAll('.skin-btn').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.skin-btn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); skin=b.dataset.tone; drawAvatar();
+  };
+});
+const inp=document.getElementById('prompt-input');
+const sb=document.getElementById('send-btn');
+inp.addEventListener('input',()=>sb.classList.toggle('ready',inp.value.trim().length>0));
+inp.addEventListener('keydown',e=>{if(e.key==='Enter')handlePrompt(inp.value);});
+sb.onclick=()=>handlePrompt(inp.value);
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>handlePrompt(c.dataset.p));
+
+// Cursor hover effect
+document.querySelectorAll('button,input,.item-card,.chip,.ptab,.skin-btn,.strip-btn,.tray-rm').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='6px';cur.style.height='6px';ring.style.width='50px';ring.style.height='50px';ring.style.borderColor='rgba(201,168,76,.8)';});
+  el.addEventListener('mouseleave',()=>{cur.style.width='12px';cur.style.height='12px';ring.style.width='36px';ring.style.height='36px';ring.style.borderColor='var(--gold)';});
+});
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderItems(); drawAvatar(); renderTray(); syncStatus();
+</script>
+</body>
+</html>
